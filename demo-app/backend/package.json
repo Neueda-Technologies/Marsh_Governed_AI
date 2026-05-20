@@ -1,0 +1,35 @@
+{
+  "name": "governed-ai-demo-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file=.env dist/main.nest.js",
+    "dev": "node --env-file=.env --watch --require ts-node/register src/main.nest.ts",
+    "dev:sample": "node --env-file=.env --require ts-node/register src/index.ts",
+    "start:nest": "node --env-file=.env dist/main.nest.js",
+    "dev:nest": "node --env-file=.env --require ts-node/register src/main.nest.ts",
+    "eval:document-extraction": "node --env-file=.env --require ts-node/register src/evals/runDocumentExtractionEvals.ts",
+    "version-bundle": "node --env-file=.env --require ts-node/register src/evals/generateVersionBundleManifest.ts",
+    "release-gate": "node --env-file=.env --require ts-node/register src/evals/generateReleaseGateReport.ts",
+    "ops:demo-safety": "node --env-file=.env --require ts-node/register src/ops/demoKillSwitchAndRollback.ts",
+    "test": "vitest run",
+    "test:dev": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.0"
+  },
+  "dependencies": {
+    "@mastra/core": "^1.17.0",
+    "@nestjs/common": "^11.1.17",
+    "@nestjs/core": "^11.1.17",
+    "@nestjs/platform-express": "^11.1.17",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  }
+}

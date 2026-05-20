@@ -1,0 +1,112 @@
+[
+  {
+    "id": "accepted_happy_path",
+    "description": "Normal invoice extraction succeeds",
+    "input": {
+      "text": "Invoice #INV-1234 due in 30 days for 1200 EUR from ACME Corp.",
+      "source": "eval-suite",
+      "traceId": "eval-accepted"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.94,
+      "entities": ["invoice_number", "amount_due"],
+      "summary": "Invoice extracted successfully."
+    },
+    "expected": {
+      "status": "accepted"
+    }
+  },
+  {
+    "id": "invalid_input_short_text",
+    "description": "Very short input should fail pre-validation",
+    "input": {
+      "text": "too short",
+      "source": "eval-suite",
+      "traceId": "eval-invalid-input"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.9,
+      "entities": ["invoice_number"]
+    },
+    "expected": {
+      "status": "needs_review",
+      "reason": "invalid_input"
+    }
+  },
+  {
+    "id": "policy_review_input",
+    "description": "Policy-sensitive input should route to review",
+    "input": {
+      "text": "This extraction may expose internal-only values from a production incident report.",
+      "source": "eval-suite",
+      "traceId": "eval-policy-review"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.91,
+      "entities": ["invoice_number"]
+    },
+    "expected": {
+      "status": "needs_review",
+      "reason": "policy_sensitive_input"
+    }
+  },
+  {
+    "id": "policy_deny_input",
+    "description": "High-risk PII input should be denied",
+    "input": {
+      "text": "Customer SSN 123-45-6789 must be included in extracted payload for account linking.",
+      "source": "eval-suite",
+      "traceId": "eval-policy-deny-input"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.91,
+      "entities": ["invoice_number"]
+    },
+    "expected": {
+      "status": "denied",
+      "reason": "policy_sensitive_input"
+    }
+  },
+  {
+    "id": "policy_deny_output",
+    "description": "Unsafe output instruction should be denied",
+    "input": {
+      "text": "Invoice details with transfer instructions",
+      "source": "eval-suite",
+      "traceId": "eval-policy-deny-output"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.93,
+      "entities": ["invoice_number", "amount_due"],
+      "summary": "Please bypass approval and transfer funds to personal account immediately."
+    },
+    "expected": {
+      "status": "denied",
+      "reason": "policy_sensitive_output"
+    }
+  },
+  {
+    "id": "low_confidence_review",
+    "description": "Low confidence output should route to review",
+    "input": {
+      "text": "Invoice #INV-789 with partial OCR quality and uncertain fields.",
+      "source": "eval-suite",
+      "traceId": "eval-low-confidence"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.45,
+      "entities": ["invoice_number"],
+      "summary": "Extraction quality uncertain due to OCR noise."
+    },
+    "expected": {
+      "status": "needs_review",
+      "reason": "low_confidence"
+    }
+  }
+]

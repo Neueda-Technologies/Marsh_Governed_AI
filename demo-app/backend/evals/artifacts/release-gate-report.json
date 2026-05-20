@@ -1,0 +1,26 @@
+{
+  "runAt": "2026-05-01T09:55:58.655Z",
+  "evalRunAt": "2026-05-01T09:55:58.642Z",
+  "quality": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "passRate": 1
+  },
+  "security": {
+    "policyCases": 3,
+    "policyPassed": 3,
+    "policyPassRate": 1
+  },
+  "traceability": {
+    "totalCases": 6,
+    "traceCompleteCount": 6,
+    "traceCompletenessRate": 1
+  },
+  "readiness": {
+    "qualityGate": true,
+    "policyGate": true,
+    "traceGate": true
+  },
+  "deploymentReady": true
+}

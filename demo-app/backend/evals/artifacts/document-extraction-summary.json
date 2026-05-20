@@ -1,0 +1,121 @@
+{
+  "runAt": "2026-05-01T09:55:58.642Z",
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "passRate": 1,
+  "results": [
+    {
+      "id": "accepted_happy_path",
+      "description": "Normal invoice extraction succeeds",
+      "passed": true,
+      "expected": {
+        "status": "accepted"
+      },
+      "actual": {
+        "status": "accepted",
+        "traceCompleteness": {
+          "traceId": true,
+          "promptVersion": true,
+          "modelIdentifier": true,
+          "complete": true
+        }
+      }
+    },
+    {
+      "id": "invalid_input_short_text",
+      "description": "Very short input should fail pre-validation",
+      "passed": true,
+      "expected": {
+        "status": "needs_review",
+        "reason": "invalid_input"
+      },
+      "actual": {
+        "status": "needs_review",
+        "reason": "invalid_input",
+        "traceCompleteness": {
+          "traceId": true,
+          "promptVersion": true,
+          "modelIdentifier": true,
+          "complete": true
+        }
+      }
+    },
+    {
+      "id": "policy_review_input",
+      "description": "Policy-sensitive input should route to review",
+      "passed": true,
+      "expected": {
+        "status": "needs_review",
+        "reason": "policy_sensitive_input"
+      },
+      "actual": {
+        "status": "needs_review",
+        "reason": "policy_sensitive_input",
+        "traceCompleteness": {
+          "traceId": true,
+          "promptVersion": true,
+          "modelIdentifier": true,
+          "complete": true
+        }
+      }
+    },
+    {
+      "id": "policy_deny_input",
+      "description": "High-risk PII input should be denied",
+      "passed": true,
+      "expected": {
+        "status": "denied",
+        "reason": "policy_sensitive_input"
+      },
+      "actual": {
+        "status": "denied",
+        "reason": "policy_sensitive_input",
+        "traceCompleteness": {
+          "traceId": true,
+          "promptVersion": true,
+          "modelIdentifier": true,
+          "complete": true
+        }
+      }
+    },
+    {
+      "id": "policy_deny_output",
+      "description": "Unsafe output instruction should be denied",
+      "passed": true,
+      "expected": {
+        "status": "denied",
+        "reason": "policy_sensitive_output"
+      },
+      "actual": {
+        "status": "denied",
+        "reason": "policy_sensitive_output",
+        "traceCompleteness": {
+          "traceId": true,
+          "promptVersion": true,
+          "modelIdentifier": true,
+          "complete": true
+        }
+      }
+    },
+    {
+      "id": "low_confidence_review",
+      "description": "Low confidence output should route to review",
+      "passed": true,
+      "expected": {
+        "status": "needs_review",
+        "reason": "low_confidence"
+      },
+      "actual": {
+        "status": "needs_review",
+        "reason": "low_confidence",
+        "traceCompleteness": {
+          "traceId": true,
+          "promptVersion": true,
+          "modelIdentifier": true,
+          "complete": true
+        }
+      }
+    }
+  ]
+}

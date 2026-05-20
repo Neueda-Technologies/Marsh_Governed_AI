@@ -1,0 +1,38 @@
+for_kevin/
+**/TEACHING_NOTES.md
+# macOS system files
+.DS_Store
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+**/.env
+
+# TypeScript
+*.tsbuildinfo
+
+# VSCode
+.vscode/
+
+# Coverage
+coverage/
+
+# Dist/output
+dist/
+out/
+build/
+
+# Logs
+logs/
+*.log
+
+# Course modules in progress (exclude until finalized)
+.cursor/
+# Local slide export tooling (not needed by learners)
+governed-ai-feature-delivery/package.json
+governed-ai-feature-delivery/package-lock.json
+governed-ai-feature-delivery/node_modules/
+governed-ai-feature-delivery/scripts/
