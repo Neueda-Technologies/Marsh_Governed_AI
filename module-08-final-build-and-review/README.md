@@ -1,165 +1,152 @@
 # Lab 8: Final Team Build and Review
 
 ## Objective
-In this final lab, you'll integrate all course patterns into a complete, production-style AI feature and defend your release decision with evidence.
 
-You will:
-1. Build an end-to-end governed AI feature slice.
-2. Validate architecture boundaries and control paths.
-3. Demonstrate quality/safety evidence from evals and traces.
-4. Define release readiness, rollback, and fallback strategy.
-5. Produce an adoption plan for real team rollout.
+You will integrate the work from all seven modules into a complete, defensible release — demonstrate it, defend it, and decide what your team does with it after today.
+
+This is not a build lab. The building is done. This is an integration and readiness lab — finding the gaps, closing the ones you can, documenting the ones you can't, and making a release decision you can stand behind.
 
 ---
 
-## Scenario: Governed AI Feature Delivery Capstone
+## Format
 
-Your team must deliver a complete feature implementation that includes:
-- Backend workflow orchestration
-- Guardrails and validation gates
-- Frontend review and uncertainty UX
-- Evaluation suite outputs
-- Deployment and governance readiness artifacts
+**Task 1** is preparation: identify and close your gaps before the demo.
+**Task 2** is the demo: show the five required things.
+**Task 3** is adoption planning: decide what this course produces for your team beyond today.
 
-You must provide a go/no-go recommendation with explicit rationale.
+Total time: 60 minutes (adjust to session length).
 
 ---
 
-## Task 1: Build and Integrate Core Flow
+## Working Directory
 
-Integrate backend and frontend into one governed request lifecycle.
+Your full stack from Modules 2–7. You need:
 
-**Your task:**
-- Implement one end-to-end success path.
-- Ensure response contracts remain deterministic.
-- Ensure fallback path is implemented and testable.
-- Confirm boundary ownership per layer.
+- Backend running with `npm run start:dev`
+- Frontend running and connected to the backend
+- `evals/artifacts/` populated from Module 6
+- `evals/artifacts/release-readiness-pack.md` from Module 7
 
-**Hints:**
-- Keep one scenario in scope; avoid feature sprawl.
-- Reuse module patterns instead of inventing new abstractions.
-- Prioritize reliability and clarity over breadth.
-
-<details>
-<summary>Possible Solution for Task 1</summary>
-
-```text
-Core flow checklist:
-- controller -> workflow -> gateway -> validators -> frontend review UI
-- accepted and needs_review paths both implemented
-- trace_id propagated through all layers
-```
-
-</details>
+If any of these are missing, get them in place before starting Task 1.
 
 ---
 
-## Task 2: Produce Evidence Pack
+## Task 1: Integration Check and Gap Closure (20 minutes)
 
-Generate evidence needed for release decision.
+Before the demo, verify that the full stack actually works together — not each layer in isolation.
 
-**Your task:**
-- Include architecture boundary diagram.
-- Include evaluation summary (pass/fail by key dimension).
-- Include trace samples for one success and one fallback case.
-- Include guardrail/fallback policy summary.
+**Work through this checklist individually (10 min)**
 
-**Hints:**
-- Evidence should support specific claims, not be generic attachments.
-- Highlight one known limitation and risk mitigation plan.
-- Keep artifact set concise and reviewable.
+Run the backend. Open the frontend. Submit the "Pass sample: invoice" input.
 
-<details>
-<summary>Possible Solution for Task 2</summary>
+Confirm:
 
-```text
-Evidence pack:
-- architecture.md
-- eval-summary.md
-- trace-success.json
-- trace-fallback.json
-- release-checklist.md
-```
+- The accepted result renders with confidence band, entities, and trace ID visible
+- The trace in the terminal shows `controller → workflow → gateway → workflow → accepted_decision` in sequence
+- The `promptVersion` in the UI matches what the trace shows
 
-</details>
+Now submit the "Fail sample: deny" input.
 
----
+Confirm:
 
-## Task 3: Present Go/No-Go Recommendation
+- The denied panel renders with a reason code and no sensitive content echoed
+- The trace shows the pre-call validation firing before the gateway is invoked
+- The response shape is consistent with what your eval suite expects
 
-Defend your final decision as if this were a production review.
+Now open `evals/artifacts/release-readiness-pack.md`.
 
-**Your task:**
-- Present release recommendation (GO / NO-GO / GO with constraints).
-- State hard evidence supporting decision.
-- List residual risks and owners.
-- Define first post-course adoption step.
+Read your go/no-go recommendation. Does it still hold given what you just saw? If anything is inconsistent, update the pack before the demo.
 
-**Hints:**
-- Include explicit gate criteria status.
-- Be transparent about unresolved risks.
-- Keep recommendation language stakeholder-friendly.
+**Pair: find the gap (10 min)**
 
-<details>
-<summary>Possible Solution for Task 3</summary>
+Swap stacks with your partner. Run their full flow. Look for:
 
-```text
-Decision: GO with constraints
-Why: safety gates passed, eval threshold met, fallback reliable
-Constraints: canary rollout only, monitor latency drift
-Residual risk: edge-case extraction ambiguity
-Owner: platform AI team lead
-```
+- Any state that produces an unexpected UI rendering
+- Any trace missing `promptVersion` or `modelIdentifier`
+- Any eval case that would now fail given what you saw in the live app
+- Any gate in the release-readiness pack that doesn't have a named owner
 
-</details>
+Feed back one gap to your partner. They have 5 minutes to either close it or document it as a known risk in the pack.
 
 ---
 
-## Example Output
+## Task 2: The Demo (20 minutes)
 
-```text
-Capstone build status: complete
-Success path demo: complete
-Fallback path demo: complete
-Eval evidence: attached
-Trace evidence: attached
-Release recommendation: GO with constraints
-Adoption plan: drafted
-```
+Each pair presents to the room. 5–7 minutes per pair.
+
+**You must show all five:**
+
+**1. End-to-end accepted path**
+Submit a request and walk the trace from `controller → request_received` to `workflow → accepted_decision`. Point at the `promptVersion` and `modelIdentifier` in the trace — that is your provenance evidence.
+
+**2. A failure path**
+Show one of: pre-call denial, post-call validation failure, or low confidence routing. The trace must show the failure stage clearly. The UI must render the correct panel for the status.
+
+**3. Eval evidence**
+Open `release-gate-report.md`. State the three gate results. If any gate failed during Module 6 — what did you change, and did you rerun the suite?
+
+**4. Trace evidence**
+Show a complete trace — one where `traceId`, `promptVersion`, and `modelIdentifier` are all present. Point at them explicitly. An auditor should be able to answer "which prompt version produced this output" from the trace alone.
+
+**5. Go/no-go recommendation**
+State your decision. Cite at least two specific gate results. Name the release owner. State one condition that would change the recommendation.
+
+**Room: while watching each demo, note:**
+
+- Which of the five elements was least convincing?
+- What would you need to see before approving this for production in your environment?
+
+One piece of feedback per demo, shared after each presentation.
 
 ---
 
-## Key Concepts Demonstrated
+## Task 3: Adoption Planning (15 minutes)
 
-- **Integrated governance**: controls preserved across full stack.
-- **Evidence-based delivery**: decisions backed by measurable artifacts.
-- **Operational readiness**: release, rollback, and fallback discipline.
-- **Adoption planning**: turning course outcomes into team standards.
+The demo proves the pattern works in a training environment. Adoption planning is what determines whether it works in yours.
+
+**Think (4 min)**
+
+Answer these four questions for your real team context:
+
+1. Which pattern from this course would have the most immediate impact if adopted next sprint — and what would it take to introduce it?
+2. Which pattern requires stakeholder alignment before it can be adopted — who specifically, and what is the conversation?
+3. What is the one thing your current team delivery process does that directly conflicts with what you've learned here?
+4. Who owns AI feature governance on your team after today — and if the answer is "nobody yet", what does that mean for the next feature you ship?
+
+**Pair (5 min)**
+
+Compare answers. Focus on question 3 — the conflict. That is the real adoption blocker, and naming it is more useful than listing what you want to do.
+
+**Share (6 min)**
+
+One adoption decision per pair to the room:
+
+- What you're committing to doing differently
+- What the first concrete step is
+- Who owns it
+
+If you can't name a concrete first step and an owner, the commitment isn't real yet.
 
 ---
 
 ## Definition of Done
 
-- End-to-end feature path works with clear boundary ownership.
-- Guarded failure/fallback path is demonstrated.
-- Eval and trace artifacts support quality and safety claims.
-- Release recommendation includes criteria, risks, and owners.
-- Team provides one concrete post-course implementation action.
+- Full stack runs end-to-end with consistent behaviour across the three status paths.
+- The demo covers all five required elements.
+- `evals/artifacts/release-readiness-pack.md` is consistent with what the live demo showed.
+- At least one gap identified in Task 1 is either closed or documented with a named owner.
+- Each team member leaves with one named adoption commitment and a concrete first step.
 
 ---
 
-## Facilitator Debrief Prompts
+## Course Close
 
-1. Which integration boundary was most fragile?
-2. Which artifact most strengthened your release confidence?
-3. What risk remains that you would not accept in production?
-4. What standard from this course should become mandatory first?
+You leave with three things.
 
----
+**A pattern set.** Governed workflow, layered guardrails, structured UX, eval suite, release controls. These are reusable across every AI feature you ship. The course scenario was document extraction — the patterns apply to any feature where AI output reaches a user in a regulated environment.
 
-## Next Steps
+**A known gap list.** The things your current build doesn't cover yet. That list is not a sign of failure — it is your next sprint's input. The teams that improve fastest are the ones that are honest about their gaps.
 
-After the course, convert your capstone output into:
-- a reusable reference implementation,
-- a shared release checklist,
-- and a team onboarding playbook for governed AI feature delivery.
+**An adoption commitment.** One named thing, one owner, one first step. That is what turns training into production impact.
+
+> The patterns are the asset. Not the prototype.

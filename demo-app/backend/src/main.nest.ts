@@ -4,6 +4,7 @@ import { AppModule } from "./nest/app.module";
 import { getRuntimeProfileConfig } from "./config/runtimeProfile";
 
 async function bootstrap() {
+  console.log("TEST", process.env.TEST);
   const config = getRuntimeProfileConfig();
   const app = await NestFactory.create(AppModule);
   app.enableCors({

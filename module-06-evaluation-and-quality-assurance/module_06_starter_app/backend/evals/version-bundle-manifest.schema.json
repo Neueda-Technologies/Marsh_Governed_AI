@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governed-ai-demo.local/schemas/version-bundle-manifest.json",
+  "title": "Version Bundle Manifest",
+  "type": "object",
+  "required": [
+    "manifestVersion",
+    "generatedAt",
+    "appVersion",
+    "prompt",
+    "runtimeConfig",
+    "evalSet",
+    "sourceHashes"
+  ],
+  "properties": {
+    "manifestVersion": { "type": "string" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "appVersion": { "type": "string" },
+    "prompt": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "runtimeConfig": {
+      "type": "object",
+      "required": [
+        "profile",
+        "llmMode",
+        "useMastraRuntime",
+        "modelIdentifier",
+        "confidenceThreshold"
+      ],
+      "properties": {
+        "profile": { "type": "string" },
+        "llmMode": { "type": "string" },
+        "useMastraRuntime": { "type": "boolean" },
+        "modelIdentifier": { "type": "string" },
+        "confidenceThreshold": { "type": "number" },
+        "openAiBaseUrl": { "type": ["string", "null"] }
+      }
+    },
+    "evalSet": {
+      "type": "object",
+      "required": ["datasetPath", "totalCases", "datasetSha256"],
+      "properties": {
+        "datasetPath": { "type": "string" },
+        "totalCases": { "type": "integer", "minimum": 0 },
+        "datasetSha256": { "type": "string" }
+      }
+    },
+    "sourceHashes": {
+      "type": "object",
+      "required": ["promptFile", "workflowFile", "validatorsFile", "runtimeProfileFile"],
+      "properties": {
+        "promptFile": { "type": "string" },
+        "workflowFile": { "type": "string" },
+        "validatorsFile": { "type": "string" },
+        "runtimeProfileFile": { "type": "string" }
+      }
+    }
+  }
+}

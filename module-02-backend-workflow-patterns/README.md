@@ -1,197 +1,207 @@
 # Lab 2: Build a Structured Workflow Endpoint
 
 ## Objective
-In this lab, you'll implement a governed NestJS workflow endpoint from controller to validated response. You'll practice layering, prompt versioning, gateway integration, and safe fallback behavior.
 
-You will:
-1. Define clear controller/workflow/prompt/validator boundaries.
-2. Implement a gateway-mediated model call with trace metadata.
-3. Enforce pre-call and post-call validation gates.
-4. Return deterministic output contracts, including fallback.
-5. Produce a reusable module pattern for future AI features.
+You will implement a governed NestJS workflow endpoint from controller through to validated response. The starter gives you types, a gateway, and mock scenarios. Your job is to wire the layers and make the governance controls real.
 
-This lab is implementation on top of a starter baseline, not greenfield. You must use your Module 1 design brief to justify your control-point and trace decisions.
+By the end you will have:
+
+- A thin controller that delegates to a workflow service.
+- A prompt module with an explicit version label.
+- Pre-call and post-call validation gates.
+- A deterministic fallback contract when validation fails.
+- A confidence threshold check that routes low-confidence results to review.
+
+Use your Module 1 design brief to justify your control-point decisions as you go. If your brief differs from what the starter expects, note it — that's a legitimate finding.
 
 ---
 
-## Scenario: Document Extraction Service
+## Format
 
-Your team is implementing a backend service that processes document text and returns structured fields for frontend review.
+Tasks 1–3 are build tasks: work individually, then pair to compare your implementation before moving on. Task 4 is an extension task with a pair discussion before you build.
 
-The service needs to:
-- Accept text input and minimal metadata.
-- Extract structured fields with a model call.
-- Validate output against schema and policy rules.
-- Return either accepted output or a safe fallback state.
+Total time: 45 minutes.
 
-This lab extends the Module 1 lifecycle and governance boundaries into real backend implementation.
+---
 
-## Working directory
+## Working Directory
 
-Use: `governed-ai-feature-delivery/demo-app-starter/backend`
+```
+governed-ai-feature-delivery/demo-app-starter/backend
+```
 
-Suggested scaffold files:
+Files you will implement:
+
 - `src/features/document-extraction/controller.ts`
-- `src/features/document-extraction/workflow.ts`
 - `src/features/document-extraction/prompt.ts`
 - `src/features/document-extraction/validators.ts`
-- `src/features/document-extraction/gateway.ts`
-- `src/features/document-extraction/types.ts`
+- `src/features/document-extraction/workflow.ts`
 
-Reference implementation (instructor only): `governed-ai-feature-delivery/demo-app/backend`
+Files already implemented — read but do not modify:
 
-### Required input artifact
-Bring your Module 1 design brief. At minimum, include:
-- Outcome-to-control mapping (`accepted`, `needs_review`, `denied` or deferred rationale)
-- Ownership decisions (`workflow` vs `prompt` vs `config` vs infra)
-- Minimum trace contract
+- `src/features/document-extraction/gateway.ts` — mock gateway with scenario routing
+- `src/features/document-extraction/mockScenarios.ts` — fixed test outputs and sentinel logic
+- `src/features/document-extraction/types.ts` — all request and response types
+- `src/nest/documents.controller.ts` — NestJS wiring, commented out until Task 1
 
----
+The mock gateway selects a scenario based on sentinels in the document text:
 
-## Task 1: Implement Layered Endpoint Skeleton
-
-Create the basic structure for a governed endpoint.
-
-**Your task:**
-- Implement a controller with request DTO validation.
-- Create a workflow service for orchestration.
-- Create a prompt module with explicit version tag.
-- Add validator stubs for pre-call and post-call checks.
-- Keep all of the above in a single feature slice (`document-extraction`).
-
-**Hints:**
-- Keep controller thin; no model logic in controller.
-- Put sequencing and decisions in workflow service.
-- Represent prompt version as explicit constant/metadata field.
-- Keep return types stable for frontend consumption.
-- This is within-feature layering, not cross-project folder-by-layer architecture.
-
-<details>
-<summary>Possible Solution for Task 1</summary>
-
-```ts
-// Structure sketch
-// controller -> workflowService.execute(input)
-// workflowService uses: promptTemplate + gateway + validators
-// returns: { status, traceId, data?, reason? }
-```
-
-</details>
+| Text prefix | Scenario | Gateway output |
+| ----------- | -------- | -------------- |
+| *(none)* | `pass` | `confidence: 0.92`, valid invoice |
+| `FAIL:` | `lowConfidence` | `confidence: 0.42`, valid invoice |
+| `POLICY:` | `policyBlocked` | `documentType: "not-a-real-type"` |
 
 ---
 
-## Task 2: Add Gateway Call + Trace Metadata
+## Task 1: Wire the Controller and Prompt (10 minutes)
 
-Integrate a gateway adapter for model invocation.
+**Build (8 min)**
 
-**Your task:**
-- Generate or propagate a `traceId`.
-- Send prompt + variables + metadata via gateway adapter.
-- Include `promptVersion` and `modelIdentifier` in trace envelope.
-- Capture response in workflow service for validation.
-- Show where this matches your Module 1 audit contract.
+- Implement `createDocumentController` in `controller.ts`. It should create the workflow, call `workflow.execute(input)`, and return the result. Keep it thin — no orchestration logic here.
+- Implement `buildDocumentExtractionPrompt` in `prompt.ts`. The prompt should instruct the model to return JSON with the four expected fields: `documentType`, `confidence`, `entities`, `summary`. The `DOCUMENT_EXTRACTION_PROMPT_VERSION` constant is already defined — leave it as-is.
+- Uncomment the wiring in `src/nest/documents.controller.ts` as instructed in the file comments.
 
-**Hints:**
-- Keep provider details behind gateway interface.
-- Trace metadata should be mandatory for every request.
-- Do not leak raw provider response directly to caller.
+Start the server and confirm `GET /documents/health` returns `{ ok: true }`. The extract endpoint will throw until Task 2.
 
-<details>
-<summary>Possible Solution for Task 2</summary>
+**Pair (2 min)**
 
-```ts
-const traceId = context.traceId ?? createTraceId();
-const result = await gateway.invoke({
-  traceId,
-  promptVersion: "extract-v1",
-  model: "gpt-4o-mini",
-  input: promptInput
-});
-```
-
-</details>
+Compare your prompt text. Did you include the same constraints? Did you constrain `documentType` to the allowed enum values? What happens if you don't?
 
 ---
 
-## Task 3: Enforce Validation + Fallback Contract
+## Task 2: Implement the Workflow and Gateway Call (10 minutes)
 
-Add deterministic acceptance and fallback behavior.
+**Build (8 min)**
 
-**Your task:**
-- Run pre-call input checks before gateway invoke.
-- Validate post-call output against schema + policy constraints.
-- Return `accepted` when checks pass.
-- Return `needs_review` fallback when checks fail.
-- If you defer `denied` to a later module, explicitly note that in your README notes.
+Implement `createDocumentExtractionWorkflow` in `workflow.ts`. For now, skip validation — just wire the gateway call and return a response.
 
-**Hints:**
-- Treat model output as untrusted until validated.
-- Keep fallback output shape predictable.
-- Persist failure reason and trace metadata for review.
+Your workflow should:
 
-<details>
-<summary>Possible Solution for Task 3</summary>
+- Generate a `traceId` if one wasn't provided in the request (a simple timestamp-based string is fine).
+- Build the prompt using `buildDocumentExtractionPrompt`.
+- Call `gateway.invoke` with `traceId`, `promptVersion`, `modelIdentifier`, and `prompt`.
+- Return the gateway output directly as an `accepted` response for now.
 
-```ts
-if (!preValidation.ok) {
-  return { status: "needs_review", traceId, reason: "invalid_input" };
+Send a POST request to `/documents/extract`:
+
+```json
+{
+  "text": "Invoice #INV-2026 due in 14 days for 980 EUR from ACME Corp.",
+  "source": "lab"
 }
-
-if (!postValidation.ok) {
-  return { status: "needs_review", traceId, reason: "validation_failed" };
-}
-
-return { status: "accepted", traceId, data: validatedOutput };
 ```
 
-</details>
+Confirm you get an `accepted` response with a `traceId` and `promptVersion` in the body.
+
+**Pair (2 min)**
+
+Check each other's response shapes. Is `promptVersion` present? Is `modelIdentifier` recorded? Does your `traceId` format match what your Module 1 audit contract required?
 
 ---
 
-## Example Output
+## Task 3: Add Validation Gates and Fallback (12 minutes)
 
-```text
-POST /documents/extract
-status: accepted
-traceId: trc_01J...
-promptVersion: extract-v1
-modelIdentifier: gpt-4o-mini
-validation: pre=pass, post=pass
-```
+**Build (10 min)**
 
-```text
-POST /documents/extract
-status: needs_review
-traceId: trc_01J...
-reason: validation_failed
-validation: pre=pass, post=fail
+Implement `validatePreCall` and `validatePostCall` in `validators.ts`, then wire them into your workflow.
+
+`validatePreCall` should reject input that is:
+
+- Missing or not a string.
+- Fewer than 20 characters or more than 10,000 characters.
+
+`validatePostCall` should reject output where:
+
+- `documentType` is not one of `invoice`, `contract`, `email`, `other`.
+- `confidence` is not a number between 0 and 1.
+- `entities` is not an array of strings.
+
+For both functions, return `{ ok: false, reason: "invalid_input" }` or `{ ok: false, reason: "validation_failed" }` on failure, and `{ ok: true, data: validatedOutput }` on success.
+
+Update your workflow to:
+
+- Run `validatePreCall` before calling the gateway. Return `needs_review` with `reason: "invalid_input"` if it fails.
+- Run `validatePostCall` on the gateway result. Return `needs_review` with `reason: "validation_failed"` if it fails.
+
+Test all three mock scenarios:
+
+```json
+{ "text": "Invoice #INV-2026 due in 14 days for 980 EUR from ACME Corp." }
 ```
+Expected: `status: "accepted"`
+
+```json
+{ "text": "FAIL: Invoice #INV-2026 due in 14 days for 980 EUR from ACME Corp." }
+```
+Expected: `status: "accepted"` — low confidence passes validation, check is not yet wired
+
+```json
+{ "text": "POLICY: Invoice #INV-2026 due in 14 days for 980 EUR from ACME Corp." }
+```
+Expected: `status: "needs_review"`, `reason: "validation_failed"`
+
+**Pair (2 min)**
+
+Compare your validator logic. Did you handle the same edge cases? What happens if `entities` contains non-string values? What happens if `confidence` is `null`?
 
 ---
 
-## Key Concepts Demonstrated
+## Task 4: Add a Confidence Threshold Check (10 minutes)
 
-- **Layered backend design**: clear ownership and reduced coupling.
-- **Feature-sliced locality**: boundaries are clear and co-located by domain feature.
-- **Prompt governance in code**: reviewable and versioned behavior assets.
-- **Validation gates**: deterministic controls around model variability.
-- **Gateway traceability**: consistent provenance for audit and debugging.
-- **Safe fallback**: predictable failure handling for production workflows.
+The `lowConfidence` scenario returns `confidence: 0.42`. Post-call validation currently passes it — the schema is valid, just uncertain. This is a governance gap: a technically valid but low-confidence result is going to the caller as `accepted`.
+
+**Think (3 min)**
+
+Before writing any code, answer these questions in your notes:
+
+- Where should the threshold check live — in `validatePostCall`, or in the workflow after validation passes?
+- What should the response look like — `needs_review`, `denied`, or something new?
+- Where does the threshold value itself belong — hardcoded, in the validator, or passed in from config?
+- What fields should the response carry so a reviewer knows why it was routed?
+
+**Pair (3 min)**
+
+Compare your answers. The most interesting question: validator or workflow? There's a defensible case for both — find the disagreement and articulate it.
+
+**Build (4 min)**
+
+Implement whichever approach you agreed on. The `confidenceThreshold` value is already available in `WorkflowDeps` — it flows in from `runtimeProfile.ts`.
+
+You will need to extend `WorkflowFallbackResponse` in `types.ts` to add `"low_confidence"` as a valid reason, and optionally add a `metadata` field to carry the threshold and observed confidence.
+
+Test with:
+
+```json
+{ "text": "FAIL: Invoice #INV-2026 due in 14 days for 980 EUR from ACME Corp." }
+```
+
+Expected: `status: "needs_review"`, `reason: "low_confidence"`
 
 ---
 
 ## Definition of Done
 
-- Controller is thin and delegates to workflow service.
-- Workflow service orchestrates sequence and fallback decisions.
-- Prompt version is explicit and propagated to gateway metadata.
-- Post-call validation blocks invalid output from caller response.
-- Endpoint always returns stable response contract (`accepted` or `needs_review`).
-- Implementation lives in the `document-extraction` feature slice.
-- Team can point to where each Module 1 design-brief decision appears in code/config/tests.
+- `GET /documents/health` returns `{ ok: true }`.
+- `POST /documents/extract` with valid text returns `status: "accepted"` with `traceId`, `promptVersion`, `modelIdentifier`, and `data`.
+- `POST /documents/extract` with `POLICY:` prefix returns `status: "needs_review"`, `reason: "validation_failed"`.
+- `POST /documents/extract` with `FAIL:` prefix returns `status: "needs_review"`, `reason: "low_confidence"`.
+- `POST /documents/extract` with text under 20 characters returns `status: "needs_review"`, `reason: "invalid_input"`.
+- You can point to where each Module 1 ownership decision appears in the code.
 
 ---
 
-## Next Steps
+## Share-Out
 
-In Module 3, you will use this deterministic workflow as a baseline and decide when to keep it fixed vs when bounded tools or agentic behavior are justified.
+One finding per pair to the room:
+
+- Where did your Module 1 design brief match the implementation — and where did it diverge?
+- What did the confidence threshold question reveal about where policy logic should live?
+
+---
+
+## Bridge to Module 3
+
+You now have a deterministic, traceable workflow. Every decision is explicit, every path is testable.
+
+Module 3 asks: when is this fixed sequence the right tool — and when does it break down? Bring your workflow. You'll map it against the agent decision framework and decide what, if anything, should be less deterministic.
