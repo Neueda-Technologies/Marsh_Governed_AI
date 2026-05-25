@@ -1,193 +1,195 @@
 # Lab 7: Define AI Release Readiness Criteria
 
 ## Objective
-In this lab, you'll build a practical release-readiness contract for an AI feature. You’ll define versioning rules, gate criteria, observability requirements, and rollback/fallback controls.
 
-You will:
-1. Define versioned release bundle requirements.
-2. Specify hard and soft CI/CD gate criteria.
-3. Define traceability and logging evidence required for approval.
-4. Define rollback and fallback trigger conditions.
-5. Produce a go/no-go recommendation template.
+You will produce a release-readiness pack for the document extraction feature — the complete set of evidence and decisions a team would need to ship an AI feature safely in a regulated environment.
 
-This lab builds on a starter baseline and prior module artifacts. Bring forward:
-- Module 6 eval dataset, scoring output, and comparison notes
-- Existing trace/guardrail contracts from Modules 2-4
-- UX status/fallback expectations from Module 5
+This lab uses artefacts you have already produced: the version bundle manifest and release gate report from Module 6, the trace contract from Modules 2–4, and the UI state model from Module 5. The new work is making deployment decisions and testing the runtime controls.
+
+By the end you will have:
+
+- A hands-on demonstration of the kill switch and its governance implications.
+- A gate policy with hard and soft criteria, each with a named owner.
+- A go/no-go recommendation document that connects every prior artefact.
 
 ---
 
-## Scenario: Releasing a New Extraction Variant
+## Format
 
-Your team is preparing to ship an updated AI feature version:
-- Prompt template updated.
-- Model version changed.
-- Evaluation dataset expanded.
+**Task 1** is a build task: run the kill switch demo and observe what versioning captures.
+**Task 2** is think-pair-share: decide which gates block and which monitor.
+**Task 3** is a build task: produce the release-readiness pack.
 
-You must decide if this change is release-ready for production.
-
-## Working directory
-
-Use: `governed-ai-feature-delivery/demo-app-starter/module_7_starter/backend`
-
-Reference implementation (instructor only): `governed-ai-feature-delivery/demo-app/backend`
+Total time: 45 minutes.
 
 ---
 
-## Task 1: Define Release Bundle Contract
+## Working Directory
 
-Specify what must be versioned and attached to every release.
-
-**Your task:**
-- List required version identifiers (prompt/model/eval/policy).
-- Define required metadata fields (owner, date, environment, region scope).
-- Define artifact naming or tagging convention.
-- Define minimum documentation attached to release candidate.
-- Ensure bundle links directly to the exact eval run used for decision.
-
-**Hints:**
-- If it changes behavior, it should be versioned.
-- Keep metadata machine-readable where possible.
-- Include region scope where deployment differs (e.g., EU/US).
-
-<details>
-<summary>Possible Solution for Task 1</summary>
-
-```text
-Required bundle metadata:
-- prompt_version
-- model_identifier
-- eval_dataset_version
-- policy_config_version
-- release_owner
-- target_regions
-- release_timestamp
+```
+/module_07_starter/backend
 ```
 
-</details>
+This is the Module 6 end state with evals intact. Confirm you have the artifacts from Module 6 before starting:
 
----
-
-## Task 2: Define CI/CD Gate Policy
-
-Turn quality expectations into enforceable release gates.
-
-**Your task:**
-- Define 3 hard-fail gates.
-- Define 2 soft gates with escalation behavior.
-- Map each gate to an owner.
-- Define what evidence must be attached when gate fails.
-- Include one trace-completeness gate tied to prior observability requirements.
-
-**Hints:**
-- Hard gates should cover safety-critical outcomes.
-- Soft gates can cover optimization targets (latency/cost trade-offs).
-- Ownership should be explicit before deployment.
-
-<details>
-<summary>Possible Solution for Task 2</summary>
-
-```text
-Hard gates:
-1) Safety test failures == 0
-2) Schema compliance >= 99%
-3) Critical task accuracy >= threshold
-
-Soft gates:
-1) P95 latency within budget
-2) Cost per request within budget
-
-Failure evidence:
-- trace sample
-- failing cases
-- owner escalation note
+```bash
+ls evals/artifacts/
 ```
 
-</details>
+You should see `document-extraction-summary.json`, `release-gate-report.md`, and `version-bundle-manifest.json`. If any are missing, rerun:
 
----
-
-## Task 3: Define Runtime Controls and Go/No-Go Rule
-
-Specify how to contain risk after deployment.
-
-**Your task:**
-- Define rollback trigger conditions.
-- Define request-level fallback trigger conditions.
-- Define kill-switch trigger conditions.
-- Define required runtime alerts.
-- Produce final go/no-go recommendation format.
-
-**Hints:**
-- Rollback handles release-level issues.
-- Fallback handles per-request uncertainty/failure.
-- Alerts should include quality drift, error spikes, and policy breaches.
-
-<details>
-<summary>Possible Solution for Task 3</summary>
-
-```text
-Rollback triggers:
-- sustained safety regression
-- major accuracy drop against baseline
-
-Fallback triggers:
-- validation_failed
-- low_confidence
-- tool_timeout
-
-Go/No-go template:
-- decision
-- evidence summary
-- known risks
-- owner sign-off
-```
-
-</details>
-
----
-
-## Example Output
-
-```text
-Release bundle: complete
-Hard gates: 3/3 pass
-Soft gates: 1 pass, 1 warning
-Trace evidence: attached
-Rollback/fallback playbook: defined
-Decision: GO with latency monitoring
+```bash
+npx tsx src/evals/generateVersionBundleManifest.ts
+npx tsx src/evals/generateReleaseGateReport.ts
 ```
 
 ---
 
-## Key Concepts Demonstrated
+## Task 1: Version a Config Change and Observe the Manifest (12 minutes)
 
-- **Release discipline**: explicit, versioned, evidence-backed deployment contract.
-- **Gate governance**: objective criteria linked to ownership.
-- **Operational resilience**: rollback and fallback as complementary controls.
-- **Auditability**: traceable rationale for release decisions.
+**Build (10 min)**
+
+The scenario: your team wants to tighten the confidence threshold before the next release — from `0.80` to `0.85`. You need to verify this counts as a versioned change.
+
+Step 1 — open `evals/artifacts/version-bundle-manifest.json`. Note the current value of `runtimeConfig.confidenceThreshold` and `sourceHashes.runtimeProfileFile`.
+
+Step 2 — update the confidence threshold in your `.env`:
+
+```
+CONFIDENCE_THRESHOLD=0.85
+```
+
+Step 3 — regenerate the manifest:
+
+```bash
+npm run generate-manifest
+```
+
+Step 4 — open the manifest again. What changed? What stayed the same?
+
+Step 5 — rerun the eval suite with the new threshold:
+
+```bash
+npx tsx src/evals/generateReleaseGateReport.ts
+```
+
+Does the report still pass? If any cases now fail — which ones, and why?
+
+Step 6 — run the kill switch demo:
+
+```bash
+npx tsx src/ops/demoKillSwitchAndRollback.ts
+```
+
+Point at the two responses. The `denied` response from the kill switch has the same envelope shape as any other denied response — the frontend contract holds without a code change or redeployment.
+
+**Pair (2 min)**
+
+Compare manifest diffs. Did you get the same hash change? 
+
+More importantly: the manifest captured the threshold change, but it didn't capture a change to the `.env` value directly — it captures the `runtimeProfileFile` hash. If someone changed `CONFIDENCE_THRESHOLD` in `.env` without touching `runtimeProfile.ts`, would the manifest detect it?
+
+That's a gap. Note it — it becomes a recommendation in Task 3.
+
+---
+
+## Task 2: Define the Gate Policy (12 minutes)
+
+You have three gates from Module 6: quality, policy, and trace completeness. You need to decide which are hard blocks and which are monitor-only.
+
+**Think (4 min)**
+
+For each gate, answer:
+
+- If this gate fails, can the feature ship? Under what circumstances, if any?
+- Who owns this gate — who is the named person who signs off if it fails?
+- What evidence must be attached to a gate failure for it to be escalated rather than blocked?
+
+Then define two additional soft gates that aren't in the current report but matter for a regulated environment:
+
+- One operational gate (latency, cost, or error rate)
+- One governance gate (something that matters for audit or compliance evidence, not just quality)
+
+**Pair (4 min)**
+
+Compare gate policies. The most contested decision is usually the trace completeness gate — some teams treat it as advisory, others as a hard block. Argue both sides.
+
+Then: does your team have named owners for each gate right now? If not, what changes before you can ship?
+
+**Share (4 min)**
+
+One gate definition per pair to the room — specifically, the governance gate you added. What does it cover and why does it matter for a regulated environment?
+
+---
+
+## Task 3: Produce the Release-Readiness Pack (18 minutes)
+
+**Build (14 min)**
+
+Create a file at `evals/artifacts/release-readiness-pack.md`.
+
+The pack should be readable by a non-engineer — a delivery manager, a compliance officer, or a senior stakeholder. It needs to answer: is this feature safe to release, and how do we know?
+
+Structure it as follows:
+
+**Release bundle**
+
+State the version identifiers for this release:
+- Prompt version (from the manifest)
+- Model identifier (from the manifest)
+- Eval dataset SHA (from the manifest)
+- Confidence threshold (from the manifest)
+- Source file hashes for prompt, workflow, and validators
+
+**Gate results**
+
+For each gate from Task 2, state: the gate name, the threshold, the result from the release gate report, whether it is a hard block or soft monitor, and the named owner.
+
+**Runtime controls**
+
+Define the three controls and their triggers:
+
+- Kill switch: what condition triggers it, who can activate it, what the response shape is
+- Fallback: what per-request conditions route to `needs_review`, what the user sees
+- Rollback: what sustained condition triggers a version revert, what the previous bundle was
+
+**Known gaps**
+
+Note at least two things your current build does not yet cover — things you would add before the next release cycle. Include the manifest gap from Task 1 if you found it.
+
+**Go/no-go recommendation**
+
+State your decision. Back it with specific evidence from the gate results. Name the release owner. Note one condition that would change the recommendation.
+
+**Pair (4 min)**
+
+Exchange packs. Read your partner's recommendation. Do you agree with the decision? Is the evidence specific enough that a compliance officer could reproduce the reasoning without asking questions?
 
 ---
 
 ## Definition of Done
 
-- Release bundle requirements are explicit and complete.
-- Hard/soft gate criteria are defined with thresholds and owners.
-- Runtime controls include rollback, fallback, and kill-switch triggers.
-- Go/no-go template includes evidence and accountability fields.
-- Team identifies which gates should become mandatory automation in next CI iteration.
+- The manifest diff from Task 1 is understood — you can explain what the threshold change did and didn't capture.
+- The gate policy has at least five gates (three from Module 6, two new), each with a threshold, hard/soft designation, and named owner.
+- `evals/artifacts/release-readiness-pack.md` exists and covers all five sections.
+- The go/no-go recommendation cites specific gate results, not general confidence.
+- You can explain the difference between a kill switch, a fallback, and a rollback to a non-engineer.
 
 ---
 
-## Facilitator Debrief Prompts
+## Share-Out
 
-1. Which gate is hardest to operationalize in your current pipeline?
-2. Which release evidence item is currently missing in your team?
-3. Where are ownership boundaries unclear during incidents?
-4. What single control would reduce risk fastest next sprint?
+Two questions to the room:
+
+- Which gate is hardest to operationalise in your current pipeline — and what would it take to automate it?
+- What single control, if it had been in place, would have prevented the most significant AI incident your team has experienced or heard about?
 
 ---
 
-## Next Steps
+## Bridge to Module 8
 
-In Module 8, you will combine architecture, guardrails, UX, evals, and deployment controls into a complete final build and review.
+Your release-readiness pack is the deliverable that connects every decision from Module 1 to a shipping recommendation with evidence.
+
+If Module 8 follows: bring this pack. Your first task is to identify the one gap in your current build that carries the most release risk — and the pack's known gaps section is where to start.
+
+If this is the final module: the pack is the artefact. It represents a governed delivery discipline — not a one-off document, but a repeatable process your team can apply to every AI feature you ship.

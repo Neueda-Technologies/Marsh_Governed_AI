@@ -1,0 +1,27 @@
+{
+  "manifestVersion": "1.0.0",
+  "generatedAt": "2026-05-25T05:51:40.328Z",
+  "appVersion": "0.1.0",
+  "prompt": {
+    "name": "document-extraction",
+    "version": "extract-v1"
+  },
+  "runtimeConfig": {
+    "profile": "dev",
+    "llmMode": "openai",
+    "modelIdentifier": "gpt-4o-mini",
+    "confidenceThreshold": 0.85,
+    "openAiBaseUrl": ""
+  },
+  "evalSet": {
+    "datasetPath": "evals/document-extraction.dataset.json",
+    "totalCases": 6,
+    "datasetSha256": "e99a7c69e4676e97b957de3d3ed19c557ba274c6739c6038107304e1b00c56c7"
+  },
+  "sourceHashes": {
+    "promptFile": "acba66a23cd0cdaa3c6f756a547de1628f64abfe442dc765ffe73545039e2f0e",
+    "workflowFile": "cc1a584c674c475454d26cff3b12f6125d6ac300da0cd594373dca58bd615f7e",
+    "validatorsFile": "1a8cff77bfbf7125a2a5f0a8af5056ec7f04c1d9da7d8d43dc0bc417150d7418",
+    "runtimeProfileFile": "d38c87d734a0576b20740b69dddb630c62ace300160d18eae7ee98c802120d09"
+  }
+}

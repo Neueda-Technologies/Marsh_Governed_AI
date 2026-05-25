@@ -1,0 +1,43 @@
+[
+  {
+    "id": "accepted_happy_path",
+    "description": "Normal invoice extraction succeeds",
+    "input": {
+      "text": "Invoice #INV-1234 due in 30 days for 1200 EUR from ACME Corp.",
+      "source": "eval-suite",
+      "traceId": "eval-accepted"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.94,
+      "entities": [
+        "invoice_number",
+        "amount_due"
+      ],
+      "summary": "Invoice extracted successfully."
+    },
+    "expected": {
+      "status": "accepted"
+    }
+  },
+  {
+    "id": "invalid_input_short_text",
+    "description": "Very short input should fail pre-validation",
+    "input": {
+      "text": "too short",
+      "source": "eval-suite",
+      "traceId": "eval-invalid-input"
+    },
+    "mockOutput": {
+      "documentType": "invoice",
+      "confidence": 0.9,
+      "entities": [
+        "invoice_number"
+      ]
+    },
+    "expected": {
+      "status": "needs_review",
+      "reason": "invalid_input"
+    }
+  }
+]
