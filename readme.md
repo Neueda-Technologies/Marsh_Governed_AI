@@ -44,16 +44,17 @@ Sample inputs in the demo app illustrate the three paths (e.g. a passing invoice
 
 ## Course modules
 
-| Module | Focus | Format | Lab guide |
-| ------ | ----- | ------ | --------- |
-| **1** | Governed AI design decisions | Think–pair–share (no code) | [module-01-ai-feature-delivery/README.md](module-01-ai-feature-delivery/README.md) |
-| **2** | Structured workflow endpoint | Build (NestJS) | [module-02-backend-workflow-patterns/README.md](module-02-backend-workflow-patterns/README.md) |
-| **3** | Workflow vs agent execution patterns | Build + design brief | [module-03-workflow-vs-agent-design/README.md](module-03-workflow-vs-agent-design/README.md) |
-| **4** | Security and guardrails | Build + governance | [module-04-security-and-guardrails/README.md](module-04-security-and-guardrails/README.md) |
-| **5** | Reviewable AI UX | Build (React) | [module-05-frontend-ai-ux-patterns/README.md](module-05-frontend-ai-ux-patterns/README.md) |
-| **6** | Evaluation and quality assurance | Dataset + release gate | [module-06-evaluation-and-quality-assurance/README.md](module-06-evaluation-and-quality-assurance/README.md) |
-| **7** | Deployment and governance | Kill switch + readiness pack | [module-07-deployment-and-governance/README.md](module-07-deployment-and-governance/README.md) |
-| **8** | Final build and review | Integration demo + adoption | [module-08-final-build-and-review/README.md](module-08-final-build-and-review/README.md) |
+| Module | Focus | Format | Slides | Lab guide |
+| ------ | ----- | ------ | ------ | --------- |
+| **0** | Course introduction | Session opener | [module-00-intro/slides.md](module-00-intro/slides.md) | — |
+| **1** | Governed AI design decisions | Think–pair–share (no code) | [module-01-ai-feature-delivery/slides.md](module-01-ai-feature-delivery/slides.md) | [module-01-ai-feature-delivery/README.md](module-01-ai-feature-delivery/README.md) |
+| **2** | Structured workflow endpoint | Build (NestJS) | [slides](module-02-backend-workflow-patterns/slides.md) | [README](module-02-backend-workflow-patterns/README.md) |
+| **3** | Workflow vs agent execution patterns | Build + design brief | [slides](module-03-workflow-vs-agent-design/slides.md) | [README](module-03-workflow-vs-agent-design/README.md) |
+| **4** | Security and guardrails | Build + governance | [slides](module-04-security-and-guardrails/slides.md) | [README](module-04-security-and-guardrails/README.md) |
+| **5** | Reviewable AI UX | Build (React) | [slides](module-05-frontend-ai-ux-patterns/slides.md) | [README](module-05-frontend-ai-ux-patterns/README.md) |
+| **6** | Evaluation and quality assurance | Dataset + release gate | [slides](module-06-evaluation-and-quality-assurance/slides.md) | [README](module-06-evaluation-and-quality-assurance/README.md) |
+| **7** | Deployment and governance | Kill switch + readiness pack | [slides](module-07-deployment-and-governance/slides.md) | [README](module-07-deployment-and-governance/README.md) |
+| **8** | Final build and review | Integration demo + adoption | [slides](module-08-final-build-and-review/slides.md) | [README](module-08-final-build-and-review/README.md) |
 
 **Typical session length:** ~45 minutes per module (Module 1 and 8 may run 40–60 minutes). Module 1 produces a design brief you carry into Module 2.
 
@@ -67,6 +68,7 @@ marsh_repo/
 ├── demo-app/                          ← reference full-stack app (instructor solution)
 │   ├── backend/                       ← NestJS API, evals, release gate
 │   └── frontend/                      ← Vite + React UI
+├── module-00-intro/                   ← Course intro slides (presenterm)
 ├── module-01-ai-feature-delivery/     ← Lab 1 (design only)
 ├── module-02-backend-workflow-patterns/
 │   └── demo-app-starter/              ← Module 2 starter backend
@@ -178,6 +180,22 @@ Request body includes document `text`, optional `source`, and optional `traceId`
 Full request/response shapes and sentinel test inputs (`FAIL:`, `POLICY:`, etc.) are documented in [demo-app/backend/README.md](demo-app/backend/README.md).
 
 ---
+
+## Presenting the slides
+
+Slides are [presenterm](https://github.com/mfontanini/presenterm) markdown (`slides.md` per module). From a module folder:
+
+```bash
+presenterm slides.md
+```
+
+Speaker notes render in a second terminal with `--listen-speaker-notes`. Module 5 expects `ui_state_model.png` and `ui_state_machine.png` alongside `slides.md`.
+
+Facilitator detail lives in `TEACHING_NOTES.md` (modules 1–8).
+
+---
+
+## For learners
 
 1. Read the lab README for your current module before writing code.
 2. Prefer continuing your own backend/frontend from the previous module; use a module starter only if you need a clean baseline.

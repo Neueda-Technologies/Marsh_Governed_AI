@@ -3,6 +3,19 @@ export type ExtractRequest = {
   source?: string;
   traceId?: string;
   executionMode?: "deterministic" | "bounded_tool";
+  /** When "off", skip deterministic skill routing (default: off). */
+  skillsMode?:  "off" | "auto";
+};
+
+export type AppliedSkillRef = {
+  id: string;
+  declaredVersion: string;
+  contentDigest: string;
+};
+
+export type SkillBundleMetadata = {
+  bundleVersion: string;
+  applied: AppliedSkillRef[];
 };
 
 export type ExtractedDocument = {
@@ -17,6 +30,7 @@ export type WorkflowAcceptedResponse = {
   traceId: string;
   promptVersion: string;
   modelIdentifier: string;
+  skills?: SkillBundleMetadata;
   data: ExtractedDocument;
 };
 
@@ -25,6 +39,7 @@ export type WorkflowFallbackResponse = {
   traceId: string;
   promptVersion: string;
   modelIdentifier: string;
+  skills?: SkillBundleMetadata;
   reason:
     | "invalid_input"
     | "validation_failed"
@@ -43,6 +58,7 @@ export type WorkflowDeniedResponse = {
   traceId: string;
   promptVersion: string;
   modelIdentifier: string;
+  skills?: SkillBundleMetadata;
   reason: "policy_sensitive_input" | "policy_sensitive_output" | "feature_disabled";
 };
 

@@ -1,10 +1,40 @@
 {
   "manifestVersion": "1.0.0",
-  "generatedAt": "2026-05-01T09:56:05.677Z",
+  "generatedAt": "2026-05-26T13:03:37.740Z",
   "appVersion": "0.1.0",
   "prompt": {
     "name": "document-extraction",
     "version": "extract-v1"
+  },
+  "skills": {
+    "catalogVersion": "96fe91f89f2b",
+    "allowedSkillIds": [
+      "invoice-extraction",
+      "pii-handling"
+    ],
+    "entries": [
+      {
+        "id": "external-enrichment",
+        "declaredVersion": "1.0.0",
+        "contentDigest": "ff2a41291596",
+        "path": "skills/external-enrichment/SKILL.md",
+        "allowlisted": false
+      },
+      {
+        "id": "invoice-extraction",
+        "declaredVersion": "1.0.0",
+        "contentDigest": "2ab019c252fa",
+        "path": "skills/invoice-extraction/SKILL.md",
+        "allowlisted": true
+      },
+      {
+        "id": "pii-handling",
+        "declaredVersion": "1.0.0",
+        "contentDigest": "0967c41df9f6",
+        "path": "skills/pii-handling/SKILL.md",
+        "allowlisted": true
+      }
+    ]
   },
   "runtimeConfig": {
     "profile": "dev",
@@ -21,7 +51,7 @@
   },
   "sourceHashes": {
     "promptFile": "acba66a23cd0cdaa3c6f756a547de1628f64abfe442dc765ffe73545039e2f0e",
-    "workflowFile": "2447f5b8267429252933d7189beae94563cf2df4ac29c24ec48b78deb75e5a66",
+    "workflowFile": "dc632d3fc01ee9f874e490a119e4e341cb1ad6d0d7554da180b84c3aa06b703d",
     "validatorsFile": "d79a78e5776ff3b279f3a287f6ce35b42f4791f89fac07b5f5bd27213f89637f",
     "runtimeProfileFile": "61a626bc55b3e758de2cb8bfe7fe88ff4d25e49a1d0c76df82ef69b39255fd7d"
   }

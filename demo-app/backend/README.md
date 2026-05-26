@@ -142,6 +142,32 @@ curl -X POST http://localhost:3000/documents/extract \
   }'
 ```
 
+## Skill picker (Module 3)
+
+Skills are markdown packs under `skills/` with YAML front matter. The workflow loads them **before** the LLM call (unlike bounded tools, which run after validation).
+
+- Routing is **deterministic**: keyword match on `text`, source match on `source` (see each `SKILL.md`).
+- `ALLOWED_SKILL_IDS` in `src/skills/loader.ts` is the governance allowlist (same pattern as `ALLOWED_TOOLS`).
+- **Versioning**: each `SKILL.md` must declare `version:` (human semver). A `contentDigest` (SHA-256 of the file) detects silent edits. Per-request `skills.bundleVersion` fingerprints the loaded set; `npm run version-bundle` pins the full catalog in `evals/artifacts/version-bundle-manifest.json`.
+- Trace event: `skill_selection` with `requestedSkills`, `loadedSkills`, `blockedSkills`, `skillBundleVersion`, `appliedSkills`.
+- API responses include `skills` when `skillsMode` is `"auto"` (declared version + digest per applied skill).
+
+Examples:
+
+```bash
+# invoice-extraction + pii-handling (upload source)
+curl -X POST http://localhost:3000/documents/extract \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Invoice #INV-2026 for 980 EUR","source":"upload"}'
+
+# external-enrichment requested but blocked (not on allowlist)
+curl -X POST http://localhost:3000/documents/extract \
+  -H "Content-Type: application/json" \
+  -d '{"text":"web search for latest rates","source":"demo"}'
+```
+
+Skills are off by default. Set `"skillsMode": "auto"` on the request to run the deterministic skill picker.
+
 ## Evaluation harness (Module 06)
 
 Starter eval dataset:
