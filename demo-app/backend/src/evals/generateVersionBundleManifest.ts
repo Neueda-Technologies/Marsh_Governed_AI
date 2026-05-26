@@ -3,6 +3,8 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { DOCUMENT_EXTRACTION_PROMPT_VERSION } from "../features/document-extraction/prompt";
 import { getRuntimeProfileConfig } from "../config/runtimeProfile";
+import { buildSkillCatalogManifest } from "../skills/loader";
+import { resolveSkillsRoot } from "../skills/resolveSkillsRoot";
 
 type EvalCase = {
   id: string;
@@ -47,6 +49,7 @@ function main() {
     "validators.ts"
   );
   const runtimeProfileFile = path.resolve(cwd, "src", "config", "runtimeProfile.ts");
+  const skillsCatalog = buildSkillCatalogManifest(resolveSkillsRoot(), cwd);
 
   const manifest = {
     manifestVersion: "1.0.0",
@@ -56,6 +59,7 @@ function main() {
       name: "document-extraction",
       version: DOCUMENT_EXTRACTION_PROMPT_VERSION,
     },
+    skills: skillsCatalog,
     runtimeConfig: {
       profile: runtimeConfig.profile,
       llmMode: runtimeConfig.llmMode,
