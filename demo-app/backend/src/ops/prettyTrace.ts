@@ -42,6 +42,7 @@ const EVENT_ICONS: Record<string, string> = {
   fallback_decision: "⚠️ ",
   deny_decision: "🚫",
   bounded_tool_selection: "🔧",
+  skill_selection: "📎",
 };
 
 type TraceEvent = {
@@ -172,6 +173,35 @@ function formatDetails(
 
   if (details?.blockedTools != null) {
     const blocked = details.blockedTools as unknown[];
+    if (blocked.length > 0) {
+      parts.push(`${c.red}blocked: ${JSON.stringify(blocked)}${c.reset}`);
+    }
+  }
+
+  if (details?.requestedSkills != null) {
+    parts.push(`${c.dim}skills: ${JSON.stringify(details.requestedSkills)}${c.reset}`);
+  }
+
+  if (details?.skillBundleVersion != null) {
+    parts.push(`${c.cyan}skillBundle: ${details.skillBundleVersion}${c.reset}`);
+  }
+
+  if (details?.appliedSkills != null) {
+    const applied = details.appliedSkills as unknown[];
+    if (applied.length > 0) {
+      parts.push(`${c.green}applied: ${JSON.stringify(applied)}${c.reset}`);
+    }
+  }
+
+  if (details?.loadedSkills != null) {
+    const loaded = details.loadedSkills as unknown[];
+    if (loaded.length > 0) {
+      parts.push(`${c.green}loaded: ${JSON.stringify(loaded)}${c.reset}`);
+    }
+  }
+
+  if (details?.blockedSkills != null) {
+    const blocked = details.blockedSkills as unknown[];
     if (blocked.length > 0) {
       parts.push(`${c.red}blocked: ${JSON.stringify(blocked)}${c.reset}`);
     }

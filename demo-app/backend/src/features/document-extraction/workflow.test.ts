@@ -107,6 +107,61 @@ describe("document extraction workflow", () => {
     });
   });
 
+  it("injects allowlisted skills into the gateway prompt for invoice-like text", async () => {
+    const { gateway, invoke } = createFakeGateway({
+      documentType: "invoice",
+      confidence: 0.95,
+      entities: ["invoice_number", "amount_due"],
+      summary: "Invoice with key billing fields",
+    });
+    const workflow = createDocumentExtractionWorkflow({
+      gateway,
+      modelIdentifier: "test-model",
+    });
+
+    const result = await workflow.execute({
+      text: "Invoice #12345 from ACME Corp with amount due of 400 USD.",
+      traceId: "trace-skills",
+      skillsMode: "auto",
+    });
+
+    const prompt = invoke.mock.calls[0]?.[0]?.prompt as string;
+    expect(prompt).toContain("### Skill: invoice-extraction@1.0.0");
+    expect(prompt).not.toContain("external-enrichment");
+    expect(result.status).toBe("accepted");
+    if (result.status === "accepted") {
+      expect(result.skills?.bundleVersion).toMatch(/^[a-f0-9]{12}$/);
+      expect(result.skills?.applied).toEqual([
+        expect.objectContaining({
+          id: "invoice-extraction",
+          declaredVersion: "1.0.0",
+        }),
+      ]);
+    }
+  });
+
+  it("skips skill injection when skillsMode is off", async () => {
+    const { gateway, invoke } = createFakeGateway({
+      documentType: "invoice",
+      confidence: 0.95,
+      entities: ["invoice_number"],
+      summary: "Invoice with key billing fields",
+    });
+    const workflow = createDocumentExtractionWorkflow({
+      gateway,
+      modelIdentifier: "test-model",
+    });
+
+    await workflow.execute({
+      text: "Invoice #12345 from ACME Corp with amount due of 400 USD.",
+      traceId: "trace-skills-off",
+      skillsMode: "off",
+    });
+
+    const prompt = invoke.mock.calls[0]?.[0]?.prompt as string;
+    expect(prompt).not.toContain("### Skill:");
+  });
+
   it("applies bounded-tool allowlist path when executionMode is bounded_tool", async () => {
     const { gateway } = createFakeGateway({
       documentType: "invoice",

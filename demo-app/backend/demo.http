@@ -40,6 +40,39 @@ Content-Type: application/json
   "traceId": "demo-sensitive-01"
 }
 
+### Skills (deterministic picker)
+# Default skillsMode is "off". Set "skillsMode": "auto" to run the picker (see skill_selection in trace).
+
+POST http://localhost:3000/documents/extract
+Content-Type: application/json
+
+{
+  "text": "Invoice #INV-2026 due in 14 days for 980 EUR from ACME Corp.",
+  "source": "upload",
+  "skillsMode": "auto"
+}
+
+###
+
+POST http://localhost:3000/documents/extract
+Content-Type: application/json
+
+{
+  "text": "Please run a web search for latest rates on this vendor contract.",
+  "source": "demo",
+  "skillsMode": "auto"
+}
+
+###
+
+POST http://localhost:3000/documents/extract
+Content-Type: application/json
+
+{
+  "text": "Invoice #INV-2026 due in 14 days for 980 EUR from ACME Corp.",
+  "source": "demo"
+}
+
 ### Bounded tool
 
 POST http://localhost:3000/documents/extract
